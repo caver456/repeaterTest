@@ -40,8 +40,8 @@ app.config["DEBUG"] = True
 # # sending emails in flask: https://mailtrap.io/blog/flask-email-sending/
 # app.config['MAIL_SERVER']='smtp.gmail.com'
 # app.config['MAIL_PORT']=587
-# app.config['MAIL_USERNAME']='ncssar.mailer@gmail.com'
-# app.config['MAIL_PASSWORD']='G0T01974'
+# app.config['MAIL_USERNAME']='..............'
+# app.config['MAIL_PASSWORD']='.........'
 # app.config['MAIL_USE_TLS'] = True
 # # app.config['MAIL_USE_SSL'] = True
 # mail=Mail(app)
