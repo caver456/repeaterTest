@@ -1,0 +1,72 @@
+{
+   "Milton Reservoir": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "Shingle Falls": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "Bridgeport covered bridge": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "Emerald Pools": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "Penner Lake": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "South Yuba Primitive Camp": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "Buckeye Rd at Chalk Bluff Rd": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "Lake Sterling": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "Dog Bar Rd at South Fork Wolf Creek": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "Peter Grubb Hut": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "Prosser Boat Ramp": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+	},
+   "Sagehen CG": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+	},
+   "Boyington Mill CG": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+	},
+   "Pacific Crest Trail at Meadow Lake Road": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+	}
+}

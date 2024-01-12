@@ -15,7 +15,7 @@ import string
 from pypdf import PdfReader,PdfWriter
 from pypdf.generic import NameObject,NumberObject
 
-mapIDList=list(range(2000,2005))
+mapIDList=list(range(2100,2200)) # the list ends one element before the second argument
 repeaters=[
 	'ALDER HILL',
 	'ALTA SIERRA',
@@ -42,6 +42,22 @@ repeaters=[
 	'SIGNAL',
 	'WOLF MTN'
 ]
+locations=[
+	'Milton Reservoir',
+	'Shingle Falls',
+	'Bridgeport covered bridge',
+	'Emerald Pools',
+	'Penner Lake',
+	'South Yuba Primitive Camp',
+	'Buckeye Rd at Chalk Bluff Rd',
+	'Lake Sterling',
+	'Dog Bar Rd at South Fork Wolf Creek',
+	'Peter Grubb Hut',
+	'Prosser Boat Ramp',
+	'Sagehen CG',
+	'Boyington Mill CG',
+	'Pacific Crest Trail at Meadow Lake Road'
+]
 letters=list(string.ascii_uppercase)[0:len(repeaters)]
 
 # the code below relies on a naming convention of fields in the fillable pdf:
@@ -58,19 +74,19 @@ fillable_pdf='repeater_map_for_test.pdf'
 # testDict values are dicts of fieldnames:value key-value pairs
 
 # 1. generate the answer sets
-testDict={}
+solutionDict={}
 
-def buildTestDict():
+def buildSolutionDict():
 	for id in mapIDList:
-		testDict[str(id)]={}
+		solutionDict[str(id)]={}
 		repeaterSample=random.sample(repeaters,len(repeaters)) # unique sampling
 		for n in range(len(repeaterSample)):
-			testDict[str(id)][repeaterSample[n]]=chr(65+n)
-	print(json.dumps(testDict,indent=3))
-	fileName='testDict_'+time.strftime('%Y%m%d%H%M%S')+'.json'
+			solutionDict[str(id)][repeaterSample[n]]=chr(65+n)
+	print(json.dumps(solutionDict,indent=3))
+	fileName='solutionDict_partOne'+time.strftime('%Y%m%d%H%M%S')+'.json'
 	with open(fileName,'w') as ofile:
-		print('Saving test dict to '+fileName)
-		json.dump(testDict,ofile,indent=3)
+		print('Saving solutionDict to '+fileName)
+		json.dump(solutionDict,ofile,indent=3)
 
 # 2. generate the PDF for each set
 
@@ -85,55 +101,146 @@ def buildTestDict():
 # 	r.fieldnames=[x.replace('NCSSAR Repeaters >> ','') for x in r.fieldnames]
 # 	guessDicts=[row for row in r]
 
-def gradeResponse():
-	print(json.dumps(guessDicts,indent=3))
+def readSolutionDicts():
+	global solutionDicts
+	with open('./solutionDict_partOne_20240111063226.json','r') as f:
+		print(' reading partOne soltions...')
+		solutionDicts['partOne']=json.load(f)
+	with open('./solutionDict_partTwo.json','r') as f:
+		print(' reading partTwo soltions...')
+		solutionDicts['partTwo']=json.load(f)
+	with open('./solutionDict_partThree.json','r') as f:
+		print(' reading partThree soltions...')
+		solutionDicts['partThree']=json.load(f)
+	print('solutionDicts read from file:')
+	print(json.dumps(solutionDicts,indent=3))
 
-	score=0
-	mapID='123'
-	guessDict=[x for x in guessDicts if x['Map ID']==mapID][0]
+def gradeResponse(mapID='2000',responseDict={}):
+	global solutionDicts
+	print('gradeResponse called for mapID='+str(mapID))
+	if not responseDict:
+		with open('./response.json','r') as f:
+			responseDict=json.load(f)
+		print('responseDict read from file:')
+	print(json.dumps(responseDict,indent=3))
+	scoreDict={}
 
-	# guessDict: keys = repeater names, values = guessed letter
-	guessDict2={v:k for k,v in guessDict.items()}
-	answerDict2={v:k for k,v in answerDict[id].items()}
+	###########
+	# PART ONE
+	###########
+	scoreDict['partOne']=0
+	solutionDict=solutionDicts['partOne'].get(mapID,None)
+	if not solutionDict:
+		print('ERROR: specified mapID '+str(mapID)+' has no corresponding entry in solutionDicts')
+		return
+	partOne=responseDict.get('partOne',None)
+	if not partOne:
+		print('ERROR: partOne not found in response data')
+		return
+	# decode then deserialize, to turn this into valid json:
+	# "partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,
+	# https://stackoverflow.com/a/42452833/3577105
+	partOne=json.loads(partOne.encode().decode('unicode-escape'))
+	# print('partOne:')
+	# print(json.dumps(partOne,indent=3))
 
-	print('Results for Map ID '+str(mapID))
-	print('-------------')
+	partOneResponseDict={}
+	for rowNum in partOne.keys():
+		letter=[v for v in partOne[rowNum].values() if v][0]
+		partOneResponseDict[letter]=repeaters[int(rowNum)]
+	
+	print('partOneResponseDict:')
+	print(json.dumps(partOneResponseDict,indent=3))
+
+	# # responseDict: keys = repeater names, values = guessed letter
+	# # invert these for use during the grading, which iterates over letters
+	# responseDict2={v:k for k,v in responseDict.items()}
+	solutionDict2={v:k for k,v in solutionDict.items()}
+
+	print('NCSSAR Repeater Test - Results for Map ID '+str(mapID))
+	print('===================================')
+	print('Part One - match map letters to repeater names')
+	print('-----------------------------------')
 	for letter in letters:
-		correctRepeater=answerDict2[letter]
-		guessedRepeater=guessDict2[letter]
+		correctRepeater=solutionDict2[letter]
+		guessedRepeater=partOneResponseDict[letter]
 		if guessedRepeater==correctRepeater:
 			print('CORRECT: '+letter+' = '+correctRepeater)
-			score+=1
+			scoreDict['partOne']+=1
 		else:
 			print('INCORRECT: '+letter+' = '+correctRepeater+'  (you guessed '+guessedRepeater+')')
-
-
-	# for repeater in repeaters:
-	# 	answer=answerDict[id].get(repeater,None)
-	# 	guess=guessDict.get(repeater,None)
-	# 	if guess==answer:
-	# 		print('CORRECT: '+str(answer)+' = '+str(repeater))
-	# 		score+=1
-	# 	else:
-			# print('INCORRECT: '+str(answer)+' = '+str(repeater)+' (you guessed '+str(guess)+')')
-
-	print('-------------')
+	print('-----------------------------------')
+	score=scoreDict['partOne']
 	pct=round(float(score/len(repeaters)*100))
-	print('Score: '+str(pct)+'%  ('+str(score)+' of '+str(len(repeaters))+')')
+	print('Part One Score: '+str(pct)+'%  ('+str(score)+' of '+str(len(repeaters))+')')
 
-	# lines=csv.reader(f)
-	# # don't assume the columns are in alphabetical order
-	# header=lines[0]
-	# colNumDict={}
-	# for n in range(len(header)):
-	# 	for repeater in repeaters:
-	# 		if header[n]=='NCSSAR Repeaters >> '+repeater:
-	# 			colNumDict[repeater]=n
-	# for line in lines[1:]:
-	# 	print('LINE: '+str(line))
+	###########
+	# PART TWO
+	###########
+	scoreDict['partTwo']=0
+	solutionDict=solutionDicts['partTwo']
+	partTwo=responseDict.get('partTwo',None)
+	if not partTwo:
+		print('ERROR: partTwo not found in response data')
+		return
+	# decode then deserialize, to turn this into valid json:
+	# "partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,
+	# https://stackoverflow.com/a/42452833/3577105
+	partTwo=json.loads(partTwo.encode().decode('unicode-escape'))
+	# print('partTwo:')
+	# print(json.dumps(partTwo,indent=3))
 
-	# 	for repeater in repeaters:
-	# 		responses[mapID][repeater]=line[colNumDict[repeater]]	
+	partTwoResponseDict={}
+	for rowNum in partTwo.keys():
+		repeaterResponses=[v for v in partTwo[rowNum].values() if v]
+		partTwoResponseDict[locations[int(rowNum)]]=repeaterResponses
+	
+	print('partTwoResponseDict:')
+	print(json.dumps(partTwoResponseDict,indent=3))
+
+	# # responseDict: keys = repeater names, values = guessed letter
+	# # invert these for use during the grading, which iterates over letters
+	# responseDict2={v:k for k,v in responseDict.items()}
+	# solutionDict2={v:k for k,v in solutionDict.items()}
+
+	print('\n===================================')
+	print('Part Two - repeaters likely to work at listed locations')
+	print('-----------------------------------')
+	maxPossibleScore=0
+	for location in locations:
+		requiredRepeaters=solutionDict[location]['required']
+		optionalRepeaters=solutionDict[location]['optional']
+		unlikelyRepeaters=solutionDict[location]['unlikely']
+		guessedRepeaters=partTwoResponseDict[location]
+		requiredRepeatersGuessed=[]
+		optionalRepeatersGuessed=[]
+		unlikelyRepeatersGuessed=[]
+		for repeater in guessedRepeaters:
+			if repeater in requiredRepeaters:
+				requiredRepeatersGuessed.append(repeater)
+			elif repeater in optionalRepeaters:
+				optionalRepeatersGuessed.append(repeater)
+			elif repeater in unlikelyRepeaters:
+				unlikelyRepeatersGuessed.append(repeater)
+		print('\n'+location+':  you selected '+str(guessedRepeaters))
+		if len(requiredRepeatersGuessed)==len(requiredRepeaters):
+			print('    CORRECT: Your selections included all of the most likely repeaters ('+str(requiredRepeaters)+')')
+			scoreDict['partTwo']+=10
+		else:
+			print('  INCORRECT: Your selections did not include all of the most likely repeaters ('+str(requiredRepeaters)+')')
+		olen=len(optionalRepeatersGuessed)
+		if olen>0:
+			print('      BONUS: You selected '+str(olen)+' of the other possible repeaters ('+str(optionalRepeaters)+')')
+			scoreDict['partTwo']+=olen
+		ulen=len(unlikelyRepeatersGuessed)
+		if ulen>0:
+			print('  DEDUCTION: You selected '+str(ulen)+' of the highly-unlikely repeaters ('+str(unlikelyRepeaters)+')')
+			scoreDict['partTwo']-=ulen
+		maxPossibleScore+=10+olen
+	print('-----------------------------------')
+	score=scoreDict['partTwo']
+	pct=round(float(score/maxPossibleScore*100))
+	print('Part Two Score: '+str(pct)+'%  (your score: '+str(score)+'   maximum possible: '+str(maxPossibleScore)+')')
 
 def makePDFs():
 
@@ -142,11 +249,11 @@ def makePDFs():
 	reader = PdfReader(fillable_pdf)
 	fields = reader.get_fields()
 
-	for testName in testDict.keys():
+	for mapID in solutionDict.keys():
 		# remove spaces from key names to get corresponding pdf field names
-		fieldsDict={k.replace(' ',''):v for k,v in testDict[testName].items()}
-		fieldsDict['MAPID']=testName
-		print('building PDF for '+testName+'...')
+		fieldsDict={k.replace(' ',''):v for k,v in solutionDict[mapID].items()}
+		fieldsDict['MAPID']=mapID
+		print('building PDF for '+mapID+'...')
 		writer = PdfWriter()
 		writer.append(reader)
 		writer.update_page_form_field_values(
@@ -166,11 +273,16 @@ def makePDFs():
 					NameObject("/Ff"): NumberObject(1)  # changing bit position to 1 flattens field
 				})
 
-		with open('repeater_test_'+str(testName)+'.pdf', 'wb') as output_stream:
+		with open('RepeaterTest_'+str(mapID)+'.pdf', 'wb') as output_stream:
 			writer.write(output_stream)
 
 
 ## top level code:
 
-buildTestDict()
-makePDFs()
+solutionDicts={}
+# buildSolutionDict()
+# makePDFs()
+readSolutionDicts()
+# print('guessDict 2021:')
+# print(json.dumps(guessDict['2021'],indent=3))
+gradeResponse('2111')

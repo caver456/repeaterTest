@@ -1,0 +1,12 @@
+{
+   "Milton Reservoir": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   },
+   "Shingle Falls": {
+      "required":["ALDER HILL","BANNER","CHERRY HILL"],
+		"optional":["BOWMAN","BOREAL"],
+		"unlikely":["SIERRABUTTES","DONNER"]
+   }
+}
