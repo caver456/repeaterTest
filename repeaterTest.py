@@ -115,6 +115,17 @@ def readSolutionDicts():
 	print('solutionDicts read from file:')
 	print(json.dumps(solutionDicts,indent=3))
 
+# print a list of strings as a simple human-readable list:
+# ['A','B','C'] --> A,B,C
+def strp(theList,spaces=True):
+	s=str(theList)
+	s=s.replace("'","")
+	s=s.replace('[','')
+	s=s.replace(']','')
+	if not spaces:
+		s=s.replace(', ',',')
+	return s
+
 def gradeResponse(mapID='2000',responseDict={}):
 	global solutionDicts
 	print('gradeResponse called for mapID='+str(mapID))
@@ -141,8 +152,8 @@ def gradeResponse(mapID='2000',responseDict={}):
 	# "partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,
 	# https://stackoverflow.com/a/42452833/3577105
 	partOne=json.loads(partOne.encode().decode('unicode-escape'))
-	# print('partOne:')
-	# print(json.dumps(partOne,indent=3))
+	print('partOne:')
+	print(json.dumps(partOne,indent=3))
 
 	partOneResponseDict={}
 	for rowNum in partOne.keys():
@@ -222,19 +233,19 @@ def gradeResponse(mapID='2000',responseDict={}):
 				optionalRepeatersGuessed.append(repeater)
 			elif repeater in unlikelyRepeaters:
 				unlikelyRepeatersGuessed.append(repeater)
-		print('\n'+location+':  you selected '+str(guessedRepeaters))
+		print('\n'+location+':  you selected '+strp(guessedRepeaters))
 		if len(requiredRepeatersGuessed)==len(requiredRepeaters):
-			print('    CORRECT: Your selections included all of the most likely repeaters ('+str(requiredRepeaters)+')')
+			print('    CORRECT: Your selections included all of the most likely repeaters ('+strp(requiredRepeaters)+')')
 			scoreDict['partTwo']+=10
 		else:
-			print('  INCORRECT: Your selections did not include all of the most likely repeaters ('+str(requiredRepeaters)+')')
+			print('  INCORRECT: Your selections did not include all of the most likely repeaters ('+strp(requiredRepeaters)+')')
 		olen=len(optionalRepeatersGuessed)
 		if olen>0:
-			print('      BONUS: You selected '+str(olen)+' of the other possible repeaters ('+str(optionalRepeaters)+')')
+			print('      BONUS: You selected '+str(olen)+' of the other possible repeaters ('+strp(optionalRepeaters)+')')
 			scoreDict['partTwo']+=olen
 		ulen=len(unlikelyRepeatersGuessed)
 		if ulen>0:
-			print('  DEDUCTION: You selected '+str(ulen)+' of the highly-unlikely repeaters ('+str(unlikelyRepeaters)+')')
+			print('  DEDUCTION: You selected '+str(ulen)+' of the highly-unlikely repeaters ('+strp(unlikelyRepeaters)+')')
 			scoreDict['partTwo']-=ulen
 		maxPossibleScore+=10+olen
 	print('-----------------------------------')

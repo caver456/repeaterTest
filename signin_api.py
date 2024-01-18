@@ -119,7 +119,7 @@ def api_jotformWebhookHandler():
     # msg=Message('jotform submission',sender='MailBot',recipients=['caver456@gmail.com'])
     # msg.body='Received jotform submission: map ID='+mapID
     # mail.send(msg)
-    app.logger.info('api key length:'+str(len(str(SENDGRID_API_KEY))))
+    # app.logger.info('api key length:'+str(len(str(SENDGRID_API_KEY))))
     msg=Mail(
         from_email='caver456@gmail.com',
         to_emails='caver456@gmail.com',
