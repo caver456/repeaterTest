@@ -2,10 +2,15 @@
 
 # repeater test workflow:
 # 1 - create a set of unique randomized answer sets (repeater-name / letter-of-the-alphabet pairings)
+#      buildSolutionDict()
 # 2 - create a corresponding PDF for each one - with the repeater labeled with said letter
-# 3 - distribute the PDFs to SAR members - keep track of what member# is getting what map#
-# 4 - create an online form where folks can submit their guesses
-# 5 - grade the guesses and respond to the members with their results
+#      makePDFs()
+# 3 - create the SAR-number-to-mapID pairings
+# 4 - distribute the PDFs to SAR members
+# 5 - create an online form where folks can submit their guesses
+#      jotform
+# 6 - automatically grade the guesses and respond to the members with their results
+#      gradeResponse(mapID)
 
 import random
 import json
@@ -15,7 +20,10 @@ import string
 from pypdf import PdfReader,PdfWriter
 from pypdf.generic import NameObject,NumberObject
 
-mapIDList=list(range(2100,2200)) # the list ends one element before the second argument
+firstMapID=2100
+numberOfMaps=100
+
+mapIDList=list(range(firstMapID,firstMapID+numberOfMaps+1)) # the list ends one element before the second argument
 repeaters=[
 	'ALDER HILL',
 	'ALTA SIERRA',
@@ -125,6 +133,31 @@ def strp(theList,spaces=True):
 	if not spaces:
 		s=s.replace(', ',',')
 	return s
+
+def getEmailsFromMembersJson(filename):
+	# filename should be a file containing the json response from
+	#  https://api.d4h.org/v2/team/members
+	with open(filename,'r') as f:
+		j=json.load(f)
+		print('D4H members data read from file: '+filename)
+	d=j['data']
+	rval={}
+	for member in d:
+		m=member['ref']
+		e=member['email']
+		rval[m]={}
+		rval[m]['email']=e
+	return rval
+
+def assignTests(firstMapID):
+	global membersDict
+	mapID=firstMapID
+	for sarID in membersDict.keys():
+		membersDict[sarID]['mapID']=mapID
+		mapID+=1
+
+def sendTests():
+	pass
 
 def gradeResponse(mapID='2000',responseDict={}):
 	global solutionDicts
@@ -291,9 +324,13 @@ def makePDFs():
 ## top level code:
 
 solutionDicts={}
+membersDict=getEmailsFromMembersJson('members.json')
+assignTests(firstMapID)
+sendTests()
+print('membersDict:\n'+json.dumps(membersDict,indent=3))
 # buildSolutionDict()
 # makePDFs()
-readSolutionDicts()
+# readSolutionDicts()
 # print('guessDict 2021:')
 # print(json.dumps(guessDict['2021'],indent=3))
-gradeResponse('2111')
+# gradeResponse('2111')
