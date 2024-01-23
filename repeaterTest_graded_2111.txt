@@ -1,0 +1,81 @@
+NCSSAR Repeater Test - Results for Map ID 2111
+===================================
+Part One - match map letters to repeater names
+-----------------------------------
+INCORRECT: A = SIGNAL  (you guessed ALDER HILL)
+INCORRECT: B = PURDON  (you guessed ALTA SIERRA)
+INCORRECT: C = SIERRABUTTES  (you guessed BABBITT)
+INCORRECT: D = OWL CREEK  (you guessed BANNER)
+INCORRECT: E = ALTA SIERRA  (you guessed BOREAL)
+INCORRECT: F = DONNER  (you guessed EDWARDS XING)
+INCORRECT: G = WOLF MTN  (you guessed GROUSE RIDGE)
+INCORRECT: H = ALDER HILL  (you guessed KENTKY RIDGE)
+INCORRECT: I = OREGON  (you guessed LOP)
+INCORRECT: J = CHERRY HILL  (you guessed LWW)
+INCORRECT: K = EDWARDS XING  (you guessed ROLLINS LK)
+INCORRECT: L = BANNER  (you guessed SIERRABUTTES)
+INCORRECT: M = BOWMAN  (you guessed SIGNAL)
+INCORRECT: N = PILOT PEAK  (you guessed WOLF MTN)
+INCORRECT: O = KENTKY RIDGE  (you guessed PURDON)
+INCORRECT: P = LWW  (you guessed PILOT PEAK)
+INCORRECT: Q = LOP  (you guessed OWL CREEK)
+INCORRECT: R = BABBITT  (you guessed OREGON)
+CORRECT: S = MT ROSE
+INCORRECT: T = DEADMAN FLAT  (you guessed DONNER)
+INCORRECT: U = GROUSE RIDGE  (you guessed DEADMAN FLAT)
+INCORRECT: V = BOREAL  (you guessed CHERRY HILL)
+INCORRECT: W = ROLLINS LK  (you guessed CASCADE SHRS)
+INCORRECT: X = CASCADE SHRS  (you guessed BOWMAN)
+-----------------------------------
+Part One Score: 4%  (1 of 24)
+
+===================================
+Part Two - repeaters likely to work at listed locations
+-----------------------------------
+
+Milton Reservoir:  you selected ALDER HILL
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Shingle Falls:  you selected BABBITT, CASCADE SHRS
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Bridgeport covered bridge:  you selected 
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Emerald Pools:  you selected 
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Penner Lake:  you selected BOREAL, CASCADE SHRS, DEADMAN FLAT
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+      BONUS: You selected 1 of the other possible repeaters (BOWMAN, BOREAL)
+
+South Yuba Primitive Camp:  you selected 
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Buckeye Rd at Chalk Bluff Rd:  you selected 
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Lake Sterling:  you selected 
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Dog Bar Rd at South Fork Wolf Creek:  you selected CASCADE SHRS
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Peter Grubb Hut:  you selected BABBITT, BANNER, BOREAL, BOWMAN, CASCADE SHRS, CHERRY HILL, DEADMAN FLAT, DONNER
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+      BONUS: You selected 2 of the other possible repeaters (BOWMAN, BOREAL)
+  DEDUCTION: You selected 1 of the highly-unlikely repeaters (SIERRABUTTES, DONNER)
+
+Prosser Boat Ramp:  you selected 
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Sagehen CG:  you selected 
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Boyington Mill CG:  you selected 
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+
+Pacific Crest Trail at Meadow Lake Road:  you selected 
+  INCORRECT: Your selections did not include all of the most likely repeaters (ALDER HILL, BANNER, CHERRY HILL)
+-----------------------------------
+Part Two Score: 1%  (your score: 2   maximum possible: 143)
