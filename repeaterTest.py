@@ -250,6 +250,9 @@ def gradeResponse(mapID='2000',responseDict={}):
 		logging.info('responseDict read from file:')
 	logging.info(json.dumps(responseDict,indent=3))
 	scoreDict={}
+	scorePct={}
+
+	sarID=responseDict['SARNumber']
 
 	with open('repeaterTest_graded_'+str(mapID)+'.txt','w') as outfile:
 
@@ -317,7 +320,7 @@ def gradeResponse(mapID='2000',responseDict={}):
 		# responseDict2={v:k for k,v in responseDict.items()}
 		solutionDict2={v:k for k,v in solutionDict.items()}
 
-		print('NCSSAR Repeater Test - Results for Map ID '+str(mapID),file=outfile)
+		print('NCSSAR Repeater Test - Results for SAR'+str(sarID)+'  Map ID '+str(mapID),file=outfile)
 		print('===================================',file=outfile)
 		print('Part One - match map letters to repeater names',file=outfile)
 		print('-----------------------------------',file=outfile)
@@ -332,6 +335,7 @@ def gradeResponse(mapID='2000',responseDict={}):
 		print('-----------------------------------',file=outfile)
 		score=scoreDict['partOne']
 		pct=round(float(score/len(repeaters)*100))
+		scorePct['partOne']=pct
 		print('Part One Score: '+str(pct)+'%  ('+str(score)+' of '+str(len(repeaters))+')',file=outfile)
 
 		###########
@@ -413,8 +417,14 @@ def gradeResponse(mapID='2000',responseDict={}):
 		score=scoreDict['partTwo']
 		# pct=round(float(score/maxPossibleScore*100))
 		pct=round(float(score/targetScore*100))
+		scorePct['partTwo']=pct
 		# print('Part Two Score: '+str(pct)+'%  (your score: '+str(score)+'   maximum possible: '+str(maxPossibleScore)+')',file=outfile)
 		print('Part Two Score: '+str(pct)+'%  (your score: '+str(score)+'   target score: '+str(targetScore)+')',file=outfile)
+
+		with open('results.log','a') as results:
+			print('SAR'+sarID+' : Map ID '+mapID+' : '+time.strftime('%a %b %d %H:%M:%S'),file=results)
+			print('Part One: '+str(scorePct['partOne'])+'%    Part Two: '+str(scorePct['partTwo'])+'%',file=results)
+			print('--------------------------------------',file=results)
 
 # def makePDFs():
 
