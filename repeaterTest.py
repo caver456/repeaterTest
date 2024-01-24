@@ -39,7 +39,9 @@ import os
 import logging
 import sys
 from pypdf import PdfReader,PdfWriter
-from pypdf.generic import NameObject,NumberObject
+from pypdf.generic import NameObject,NumberObject,TextStringObject,encode_pdfdocencoding
+from pypdf.constants import AnnotationDictionaryAttributes,InteractiveFormDictEntries,PageAttributes,StreamAttributes,FilterTypes,FieldDictionaryAttributes,FieldFlag
+from pypdf.filters import FlateDecode
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
@@ -47,8 +49,8 @@ from sendgrid.helpers.mail import Mail
 logging.basicConfig(filename='repeaterTest_'+time.strftime('%Y%m%d%H%M%S')+'.log',format='%(asctime)s:%(message)s',level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
-firstMapID=2100
-numberOfMaps=100
+firstMapID=2200
+numberOfMaps=150
 
 mapIDList=list(range(firstMapID,firstMapID+numberOfMaps+1)) # the list ends one element before the second argument
 repeaters=[
@@ -134,7 +136,7 @@ def buildSolutionDict():
 
 def readSolutionDicts():
 	global solutionDicts
-	with open('./solutionDict_partOne_20240111063226.json','r') as f:
+	with open('./solutionDict_partOne20240124085012.json','r') as f:
 		# logging.info(' reading partOne soltions...')
 		solutionDicts['partOne']=json.load(f)
 	with open('./solutionDict_partTwo.json','r') as f:
@@ -369,42 +371,164 @@ def gradeResponse(mapID='2000',responseDict={}):
 		pct=round(float(score/maxPossibleScore*100))
 		print('Part Two Score: '+str(pct)+'%  (your score: '+str(score)+'   maximum possible: '+str(maxPossibleScore)+')',file=outfile)
 
+# def makePDFs():
+
+# 	# from https://pypdf.readthedocs.io/en/stable/user/forms.html
+
+# 	reader = PdfReader(fillable_pdf)
+# 	fields = reader.get_fields()
+
+# 	partOneDict=solutionDicts['partOne']
+# 	for mapID in partOneDict.keys():
+# 		# remove spaces from key names to get corresponding pdf field names
+# 		fieldsDict={k.replace(' ',''):v for k,v in partOneDict[mapID].items()}
+# 		fieldsDict['MAPID']=mapID
+# 		logging.info('building PDF for '+mapID+'...')
+# 		writer = PdfWriter()
+# 		writer.append(reader)
+# 		writer.update_page_form_field_values(
+# 			writer.pages[0],
+# 			fieldsDict,
+# 			1, # has no effect - fields are still blank in Chrome extension
+# 			auto_regenerate=True, # sets need_appearances which seems to help
+# 		)
+
+# 		# flatten i.e. make the final pdf non-editable
+# 		#  taken from https://stackoverflow.com/a/55302753/3577105
+# 		for page in writer.pages:
+# 			for j in range(0, len(page['/Annots'])):
+# 				writer_annot = page['/Annots'][j].get_object()
+# 				# flatten all the fields by setting bit position to 1
+# 				# use loop below if only specific fields need to be flattened.
+# 				writer_annot.update({
+# 					NameObject("/Ff"): NumberObject(1)  # changing bit position to 1 flattens field
+# 				})
+
+# 		with open('repeaterTest_'+str(mapID)+'.pdf', 'wb') as output_stream:
+# 			writer.write(output_stream)
+
+# def makePDFs():
+# 	# This attempt, from https://github.com/py-pdf/pypdf/issues/355#issuecomment-1906789915
+# 	#  shows fields correctly in Chrome Acrobat Reader extension (after flicker);
+# 	#  on the phone, it does allow download-by-tap but does not show fields regardless
+# 	#   of View settings in the acrobat reader app.
+
+# 	reader = PdfReader(fillable_pdf)
+# 	fields = reader.get_fields()
+
+# 	partOneDict=solutionDicts['partOne']
+# 	for mapID in partOneDict.keys():
+# 		# remove spaces from key names to get corresponding pdf field names
+# 		fieldsDict={k.replace(' ',''):v for k,v in partOneDict[mapID].items()}
+# 		fieldsDict['MAPID']=mapID
+# 		logging.info('building PDF for '+mapID+'...')
+# 		writer = PdfWriter()
+# 		writer.set_need_appearances_writer()
+# 		page0=reader.pages[0]
+# 		form_fields=page0.get('/Annots')
+# 		for field in form_fields.get_object():
+# 			field_object=field.get_object()
+# 			field_object.update({
+# 				NameObject('/V'):create_string_object('A'),
+# 				NameObject('/Ff'): NumberObject(1)  # changing bit position to 1 flattens field
+# 			})
+# 		writer.add_page(page0)
+# 		with open('repeaterTest_'+str(mapID)+'.pdf', 'wb') as output_stream:
+# 			writer.write(output_stream)
+
+
 def makePDFs():
-
-	# from https://pypdf.readthedocs.io/en/stable/user/forms.html
-
-	reader = PdfReader(fillable_pdf)
-	fields = reader.get_fields()
+	# this solution works for all but Read Mode on the phone:
+	# https://stackoverflow.com/a/73655665/3577105
+	#  the main difference is that it doesn't rely upon NeedAppearances,
+	#   and actually creates stream objects instead
+	template = PdfReader(fillable_pdf)
 
 	partOneDict=solutionDicts['partOne']
 	for mapID in partOneDict.keys():
-		# remove spaces from key names to get corresponding pdf field names
-		fieldsDict={k.replace(' ',''):v for k,v in partOneDict[mapID].items()}
-		fieldsDict['MAPID']=mapID
 		logging.info('building PDF for '+mapID+'...')
+		# Initialize writer.
 		writer = PdfWriter()
-		writer.append(reader)
-		writer.update_page_form_field_values(
-			writer.pages[0],
-			fieldsDict,
-			1, # has no effect - fields are still blank in Chrome extension
-			auto_regenerate=True, # sets need_appearances which seems to help
-		)
 
-		# flatten i.e. make the final pdf non-editable
-		#  taken from https://stackoverflow.com/a/55302753/3577105
-		for page in writer.pages:
-			for j in range(0, len(page['/Annots'])):
-				writer_annot = page['/Annots'][j].get_object()
-				# flatten all the fields by setting bit position to 1
-				# use loop below if only specific fields need to be flattened.
-				writer_annot.update({
-					NameObject("/Ff"): NumberObject(1)  # changing bit position to 1 flattens field
-				})
+		# Add the template page.
+		writer.add_page(template.pages[0])
 
+		# Get page annotations.
+		page_annotations = writer.pages[0][PageAttributes.ANNOTS]
+		# page_annotations = writer.pages[0]['/Annots']
+		
+		# remove spaces from key names to get corresponding pdf field names
+		data={k.replace(' ',''):v for k,v in partOneDict[mapID].items()}
+		data['MAPID']=mapID
+
+		# Loop through page annotations (fields).
+		for index in range(len(page_annotations)):  # type: ignore
+			# Get annotation object.
+			annotation = page_annotations[index].get_object()  # type: ignore
+
+			# Get existing values needed to create the new stream and update the field.
+			field = annotation.get(NameObject("/T"))
+			new_value = data.get(field, 'N/A')
+			ap = annotation.get(AnnotationDictionaryAttributes.AP)
+			x_object = ap.get(NameObject("/N")).get_object()
+			font = annotation.get(InteractiveFormDictEntries.DA)
+			rect = annotation.get(AnnotationDictionaryAttributes.Rect)
+
+			# Calculate the text position.
+			font_size = float(font.split(" ")[1])
+			w = round(float(rect[2] - rect[0] - 2), 2)
+			h = round(float(rect[3] - rect[1] - 2), 2)
+			text_position_h = h / 2 - font_size / 3  # approximation
+
+			# Create a new XObject stream.
+			new_stream = f'''
+				/Tx BMC 
+				q
+				1 1 {w} {h} re W n
+				BT
+				{font}
+				2 {text_position_h} Td
+				({new_value}) Tj
+				ET
+				Q
+				EMC
+			'''
+
+			# Add Filter type to XObject.
+			x_object.update(
+				{
+					NameObject(StreamAttributes.FILTER): NameObject(FilterTypes.FLATE_DECODE)
+				}
+			)
+
+			# Update and encode XObject stream.
+			x_object._data = FlateDecode.encode(encode_pdfdocencoding(new_stream))
+
+			# Update annotation dictionary.
+			annotation.update(
+				{
+					# Update Value.
+					NameObject(FieldDictionaryAttributes.V): TextStringObject(
+						new_value
+					),
+					# Update Default Value.
+					NameObject(FieldDictionaryAttributes.DV): TextStringObject(
+						new_value
+					),
+					# Set Read Only flag.
+					NameObject(FieldDictionaryAttributes.Ff): NumberObject(
+						FieldFlag(1)
+					)
+				}
+			)
+
+		# Clone document root & metadata from template.
+		# This is required so that the document doesn't try to save before closing.
+		# writer.clone_reader_document_root(template)
+
+		# write "output".
 		with open('repeaterTest_'+str(mapID)+'.pdf', 'wb') as output_stream:
 			writer.write(output_stream)
-
 
 ## top level code:
 
@@ -433,7 +557,7 @@ readSolutionDicts()
 # makePDFs()
 # logging.info('guessDict 2021:')
 # logging.info(json.dumps(guessDict['2021'],indent=3))
-gradeResponse('2111')
+gradeResponse('2242')
 
 
 # class repeaterTest():
