@@ -80,19 +80,19 @@ repeaters=[
 	'WOLF MTN'
 ]
 locations=[
-	'Milton Reservoir',
-	'Shingle Falls',
+	# 'Milton Reservoir',
+	# 'Shingle Falls',
 	'Bridgeport covered bridge',
-	'Emerald Pools',
+	# 'Emerald Pools',
 	'Penner Lake',
-	'South Yuba Primitive Camp',
+	# 'South Yuba Primitive Camp',
 	'Buckeye Rd at Chalk Bluff Rd',
-	'Lake Sterling',
-	'Dog Bar Rd at South Fork Wolf Creek',
+	# 'Lake Sterling',
+	# 'Dog Bar Rd at South Fork Wolf Creek',
 	'Peter Grubb Hut',
 	'Prosser Boat Ramp',
-	'Sagehen CG',
-	'Boyington Mill CG',
+	# 'Sagehen CG',
+	# 'Boyington Mill CG',
 	'Pacific Crest Trail at Meadow Lake Road'
 ]
 letters=list(string.ascii_uppercase)[0:len(repeaters)]
@@ -263,19 +263,51 @@ def gradeResponse(mapID='2000',responseDict={}):
 			return
 		partOne=responseDict.get('partOne',None)
 		if not partOne:
+			print('ERROR: partOne not found in response data',file=outfile)
 			logging.info('ERROR: partOne not found in response data')
 			return
-		# decode then deserialize, to turn this into valid json:
-		# "partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,
-		# https://stackoverflow.com/a/42452833/3577105
-		partOne=json.loads(partOne.encode().decode('unicode-escape'))
+
+		# it looks like JotForm may have significantly changed the structure of their InputTable responses
+		#  sometime in January 2024 (or, it could be operator confusion...)
+		
+		# old:
+		# response={...,"partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,...
+		#  a dict of dicts, one per row, each one having an entry for each repeater,
+		#  where the selected repeater number is True and all others are False
+
+		# new:
+		# resonse={...,"partOne": [{"4": "E"}, {"13": "N"}, {"1": "B"}, {"16": "Q"}, ["A"], {"21": "V"}, ...
+		#  an ordered list of dicts, with index corresonding to row number (zero-based); each dict
+		#   has just one key:val pair, col# (string) : colName;
+		#  except, there appears to be a bug: column zero comes out as a list containing only the col name, not a dict.
+
+		# # decode then deserialize, to turn this into valid json:
+		# # "partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,
+		# # https://stackoverflow.com/a/42452833/3577105
+		# partOne=json.loads(partOne.encode().decode('unicode-escape'))
 		logging.info('partOne:')
 		logging.info(json.dumps(partOne,indent=3))
 
 		partOneResponseDict={}
-		for rowNum in partOne.keys():
-			letter=[v for v in partOne[rowNum].values() if v][0]
-			partOneResponseDict[letter]=repeaters[int(rowNum)]
+		# 1-24-24: at this point, partOne should be a list of dicts, each with a single key (the column number);
+		#  if so, replace keys (column numbers) with repeater names based on list index
+		if partOne.__class__.__name__=='list':
+			out={}
+			for n in range(len(partOne)):
+				e=partOne[n]
+				if e.__class__.__name__=='list' and len(e)==1:
+					letter=e[0]
+				else:
+					letter=list(partOne[n].values())[0]
+				out[letter]=repeaters[n]
+			partOneResponseDict=out
+			
+		# logging.info('partOne after processing:')
+		# logging.info(json.dumps(partOne,indent=3))
+
+		# for rowNum in partOne.keys():
+		# 	letter=[v for v in partOne[rowNum].values() if v][0]
+		# 	partOneResponseDict[letter]=repeaters[int(rowNum)]
 		
 		logging.info('partOneResponseDict:')
 		logging.info(json.dumps(partOneResponseDict,indent=3))
@@ -293,7 +325,7 @@ def gradeResponse(mapID='2000',responseDict={}):
 			correctRepeater=solutionDict2[letter]
 			guessedRepeater=partOneResponseDict[letter]
 			if guessedRepeater==correctRepeater:
-				print('CORRECT: '+letter+' = '+correctRepeater,file=outfile)
+				print('  CORRECT: '+letter+' = '+correctRepeater,file=outfile)
 				scoreDict['partOne']+=1
 			else:
 				print('INCORRECT: '+letter+' = '+correctRepeater+'  (you guessed '+guessedRepeater+')',file=outfile)
@@ -312,17 +344,23 @@ def gradeResponse(mapID='2000',responseDict={}):
 			print('ERROR: partTwo not found in response data',file=outfile)
 			logging.info('ERROR: partTwo not found in response data')
 			return
-		# decode then deserialize, to turn this into valid json:
-		# "partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,
-		# https://stackoverflow.com/a/42452833/3577105
-		partTwo=json.loads(partTwo.encode().decode('unicode-escape'))
+		# # decode then deserialize, to turn this into valid json:
+		# # "partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,
+		# # https://stackoverflow.com/a/42452833/3577105
+		# partTwo=json.loads(partTwo.encode().decode('unicode-escape'))
 		# print('partTwo:')
 		# print(json.dumps(partTwo,indent=3))
 
 		partTwoResponseDict={}
-		for rowNum in partTwo.keys():
-			repeaterResponses=[v for v in partTwo[rowNum].values() if v]
-			partTwoResponseDict[locations[int(rowNum)]]=repeaterResponses
+
+		# 1-24-24: partTwo val is a list of lists
+
+		for n in range(len(partTwo)):
+			partTwoResponseDict[locations[n]]=partTwo[n]
+
+		# for rowNum in partTwo.keys():
+		# 	repeaterResponses=[v for v in partTwo[rowNum].values() if v]
+		# 	partTwoResponseDict[locations[int(rowNum)]]=repeaterResponses
 		
 		logging.info('partTwoResponseDict:')
 		logging.info(json.dumps(partTwoResponseDict,indent=3))
@@ -335,7 +373,8 @@ def gradeResponse(mapID='2000',responseDict={}):
 		print('\n===================================',file=outfile)
 		print('Part Two - repeaters likely to work at listed locations',file=outfile)
 		print('-----------------------------------',file=outfile)
-		maxPossibleScore=0
+		# maxPossibleScore=0
+		targetScore=0
 		for location in locations:
 			requiredRepeaters=solutionDict[location]['required']
 			optionalRepeaters=solutionDict[location]['optional']
@@ -352,6 +391,9 @@ def gradeResponse(mapID='2000',responseDict={}):
 				elif repeater in unlikelyRepeaters:
 					unlikelyRepeatersGuessed.append(repeater)
 			print('\n'+location+':  you selected '+strp(guessedRepeaters),file=outfile)
+			# print('\n'+location+':     requiredRepeatersGuessed: '+strp(requiredRepeatersGuessed),file=outfile)
+			# print('\n'+location+':     optionalRepeatersGuessed: '+strp(optionalRepeatersGuessed),file=outfile)
+			# print('\n'+location+':     unlikelyRepeatersGuessed: '+strp(unlikelyRepeatersGuessed),file=outfile)
 			if len(requiredRepeatersGuessed)==len(requiredRepeaters):
 				print('    CORRECT: Your selections included all of the most likely repeaters ('+strp(requiredRepeaters)+')',file=outfile)
 				scoreDict['partTwo']+=10
@@ -365,11 +407,14 @@ def gradeResponse(mapID='2000',responseDict={}):
 			if ulen>0:
 				print('  DEDUCTION: You selected '+str(ulen)+' of the highly-unlikely repeaters ('+strp(unlikelyRepeaters)+')',file=outfile)
 				scoreDict['partTwo']-=ulen
-			maxPossibleScore+=10+olen
+			# maxPossibleScore+=10+olen
+			targetScore+=10
 		print('-----------------------------------',file=outfile)
 		score=scoreDict['partTwo']
-		pct=round(float(score/maxPossibleScore*100))
-		print('Part Two Score: '+str(pct)+'%  (your score: '+str(score)+'   maximum possible: '+str(maxPossibleScore)+')',file=outfile)
+		# pct=round(float(score/maxPossibleScore*100))
+		pct=round(float(score/targetScore*100))
+		# print('Part Two Score: '+str(pct)+'%  (your score: '+str(score)+'   maximum possible: '+str(maxPossibleScore)+')',file=outfile)
+		print('Part Two Score: '+str(pct)+'%  (your score: '+str(score)+'   target score: '+str(targetScore)+')',file=outfile)
 
 # def makePDFs():
 
