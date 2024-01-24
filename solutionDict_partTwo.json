@@ -1,72 +1,32 @@
 {
-   "Milton Reservoir": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
-   },
-   "Shingle Falls": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
-   },
    "Bridgeport covered bridge": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
-   },
-   "Emerald Pools": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
+      "required":["KENTKY RIDGE","LWW","OWL CREEK"],
+		"optional":["BANNER","OREGON"],
+		"unlikely":["ALDER HILL","BABBITT","BOREAL","BOWMAN","CHERRY HILL","DONNER","GROUSE RIDGE","LOP","MT ROSE","ROLLINS LK","SIERRABUTTES","SIGNAL"]
    },
    "Penner Lake": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
-   },
-   "South Yuba Primitive Camp": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
+      "required":["GROUSE RIDGE","SIERRABUTTES","SIGNAL"],
+		"optional":["ALTA SIERRA","BANNER","BOWMAN","CHERRY HILL"],
+		"unlikely":["ALDER HILL","BABBITT","BOREAL","DONNER","PILOT PEAK","PURDON","ROLLINS LK","WOLF MTN"]
    },
    "Buckeye Rd at Chalk Bluff Rd": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
-   },
-   "Lake Sterling": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
-   },
-   "Dog Bar Rd at South Fork Wolf Creek": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
+      "required":["BANNER","CASCADE SHRS","SIGNAL"],
+		"optional":["ALTA SIERRA","BOREAL","BOWMAN","CHERRY HILL","DEADMAN FLAT","DONNER","EDWARDS XING","GROUSE RIDGE","KENTKY RIDGE","LOP","OREGON","OWL CREEK","PILOT PEAK","PURDON","ROLLINS LK","SIERRABUTTES","WOLF MTN"],
+		"unlikely":["ALDER HILL","BABBITT","MT ROSE"]
    },
    "Peter Grubb Hut": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
+      "required":["DONNER","SIERRABUTTES","SIGNAL"],
+		"optional":["BOREAL","BOWMAN","GROUSE RIDGE"],
+		"unlikely":["ALDER HILL","ALTA SIERRA","BABBITT","BANNER","CASCADE SHRS","CHERRY HILL","DEADMAN FLAT","EDWARDS XING","KENTKY RIDGE","LOP","LWW","MT ROSE","OREGON","OWL CREEK","PILOT PEAK","PURDON","ROLLINS LK"]
    },
    "Prosser Boat Ramp": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
-	},
-   "Sagehen CG": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
-	},
-   "Boyington Mill CG": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
+      "required":["ALDER HILL","BABBITT","MT ROSE"],
+		"optional":["BOREAL","DONNER"],
+		"unlikely":["ALTA SIERRA","BANNER","BOWMAN","CASCADE SHRS","CHERRY HILL","DEADMAN FLAT","EDWARDS XING","GROUSE RIDGE","KENTKY RIDGE","LOP","LWW","OREGON","OWL CREEK","PILOT PEAK","PURDON","ROLLINS LK","SIERRABUTTES","SIGNAL","WOLF MTN"]
 	},
    "Pacific Crest Trail at Meadow Lake Road": {
-      "required":["ALDER HILL","BANNER","CHERRY HILL"],
-		"optional":["BOWMAN","BOREAL"],
-		"unlikely":["SIERRABUTTES","DONNER"]
+      "required":["BOREAL","GROUSE RIDGE","SIGNAL"],
+		"optional":["BABBITT","BOWMAN","DONNER","SIERRABUTTES"],
+		"unlikely":["ALDER HILL","ALTA SIERRA","BANNER","CASCADE SHRS","CHERRY HILL","DEADMAN FLAT","EDWARDS XING","KENTKY RIDGE","LOP","LWW","MT ROSE","OREGON","OWL CREEK","PILOT PEAK","PURDON","ROLLINS LK","WOLF MTN"]
 	}
 }

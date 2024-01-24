@@ -140,6 +140,19 @@ def readSolutionDicts():
 	with open('./solutionDict_partTwo.json','r') as f:
 		# logging.info(' reading partTwo soltions...')
 		solutionDicts['partTwo']=json.load(f)
+		# validate the file, to check for typos or repeated entries
+		categories=['required','optional','unlikely']
+		for loc in solutionDicts['partTwo'].keys():
+			if sorted(solutionDicts['partTwo'][loc].keys())!=sorted(categories):
+				logging.info('ERROR during read of partTwo solutions: not all of the neccesary categories are in the file for '+str(loc))
+			for category in categories:
+				rep=solutionDicts['partTwo'][loc][category]
+				for r in rep:
+					if r not in repeaters:
+						logging.info('ERROR during read of partTwo solutions: '+str(loc)+': '+str(category)+': '+str(r)+' is not a valid repeater!')
+					for otherCategory in [c for c in categories if c!=category]:
+						if r in solutionDicts['partTwo'][loc][otherCategory]:
+							logging.info('ERROR during read of partTwo solutions: '+str(loc)+': '+str(category)+': '+str(r)+' is also listed in '+str(otherCategory)+'!')
 	# with open('./solutionDict_partThree.json','r') as f:
 	# 	logging.info(' reading partThree soltions...')
 	# 	solutionDicts['partThree']=json.load(f)
