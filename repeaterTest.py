@@ -32,7 +32,6 @@
 
 import random
 import json
-import csv
 import time
 import string
 import os
@@ -128,12 +127,6 @@ def buildSolutionDict():
 # 5. read the results from jotform and check the answers
 #    (to be done on pythonanywhere, triggered by jotform webhook)
 
-# csvName='NCSSAR_Repeaters_Test2023-12-25_14_54_42.csv'
-# with open(csvName) as f:
-# 	r=csv.DictReader(f)
-# 	r.fieldnames=[x.replace('NCSSAR Repeaters >> ','') for x in r.fieldnames]
-# 	guessDicts=[row for row in r]
-
 def readSolutionDicts():
 	global solutionDicts
 	with open('./solutionDict_partOne20240124085012.json','r') as f:
@@ -185,9 +178,11 @@ def getEmailsFromMembersJson(filename,subset=None):
 	for member in d:
 		m=member['ref']
 		e=member['email']
+		n=member['name']
 		if not subset or (subset and m in subset):
 			rval[m]={}
 			rval[m]['email']=e
+			rval[m]['name']=n
 	return rval
 
 def assignTests(firstMapID):
@@ -229,11 +224,13 @@ def sendTests(sarIDList=None):
 			to_emails=email,
 			subject='Repeater Locations Test: Your Map ID is '+str(mapID),
 			html_content='''
-			1. Repeater Test Instructions: <a href="https://ncssar.sharepoint.com/:w:/s/MasterFile/EYFwFd0cnBpKnCCNhdQkCbsBJu3GD3aTHlUY2itlrBkEpA?e=t6n9Yx">Click Here</a><br>
+			1. Repeater Test Instructions: <a href="https://caver456.pythonanywhere.com/repeaterTest/repeaterTestInstructions.pdf">Click Here</a><br>
 			2. Your customized repeater test map PDF: <a href="%mapLink%">Click Here</a><br>
 			3. Your Map ID: %mapID%<br>
 			4. The test: <a href="https://www.jotform.com/form/233555430790053?SARNumber=%sarID%&mapID=%mapID%">Click Here</a>'''.replace('%mapLink%',mapLink).replace('%mapID%',str(mapID)).replace('%sarID%',sarID)
 		)
+		# on sharepoint, which required login for at least one tester:
+		# 1. Repeater Test Instructions: <a href="https://ncssar.sharepoint.com/:w:/s/MasterFile/EYFwFd0cnBpKnCCNhdQkCbsBJu3GD3aTHlUY2itlrBkEpA?e=t6n9Yx">Click Here</a><br>
 		if rval:
 			testDict[sarID]['assignmentSent']=time.strftime('%a %b %d %Y %H:%M:%S')
 
@@ -417,12 +414,15 @@ def gradeResponse(mapID='2000',responseDict={}):
 		if len(requiredRepeatersGuessed)==len(requiredRepeaters):
 			gradedText+='\n    CORRECT: Your selections included all of the most likely repeaters ('+strp(requiredRepeaters)+')'
 			scoreDict['partTwo']+=10
+		elif len(requiredRepeatersGuessed)==len(requiredRepeaters)-1:
+			gradedText+='\n    PARTIAL: Your selections included all but one of the most likely repeaters ('+strp(requiredRepeaters)+')'
+			scoreDict['partTwo']+=6
 		else:
 			gradedText+='\n  INCORRECT: Your selections did not include all of the most likely repeaters ('+strp(requiredRepeaters)+')'
 		olen=len(optionalRepeatersGuessed)
 		if olen>0:
 			gradedText+='\n      BONUS: You selected '+str(olen)+' of the other possible repeaters ('+strp(optionalRepeaters)+')'
-			scoreDict['partTwo']+=olen
+			scoreDict['partTwo']+=(olen*2)
 		ulen=len(unlikelyRepeatersGuessed)
 		if ulen>0:
 			gradedText+='\n  DEDUCTION: You selected '+str(ulen)+' of the highly-unlikely repeaters ('+strp(unlikelyRepeaters)+')'
@@ -638,6 +638,12 @@ def loadTestDict():
 #  - buildSolutionDict --> upload to pythonanywhere
 #  - makePDFs --> upload PDFs to pythonanywhere
 
+# what to run 'online' (on pythonanywhere, from webhook handler)
+#  - loadTestDict
+#  - readSolutionDicts
+#  - gradeResponse (called with the data from the webhook payload)
+#  - saveTestDict
+
 # testDict will either be created from scratch here, or, loaded from a file
 testDict={}
 
@@ -664,17 +670,19 @@ loadTestDict()
 logging.info('testDict after load:\n'+json.dumps(testDict,indent=3))
 
 # send email to members
+# sendTests([50,138,116,139,46,74,25]) # round 1 - early adopters - sent ~1-25-24
 # sendTests([35])
+sendTests([15,144,54,73,20,51,124,59,27,62,65,93,115,29,60]) # round 2 - sent 1-29-24
 
-solutionDicts={}
+# solutionDicts={}
 # buildSolutionDict()
-readSolutionDicts()
+# readSolutionDicts()
 # makePDFs()
 # logging.info('guessDict 2021:')
 # logging.info(json.dumps(guessDict['2021'],indent=3))
-gradeResponse('2242')
+# gradeResponse('2242')
 
-saveTestDict()
+# saveTestDict()
 
 
 # class repeaterTest():
