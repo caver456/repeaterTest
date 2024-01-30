@@ -30,6 +30,8 @@ from pathlib import Path
 import logging
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+import string
+import time
 
 logging.basicConfig(filename='flask.log',format='%(asctime)s:%(message)s')
 
@@ -67,7 +69,6 @@ app.logger.info("python search path:"+str(sys.path))
 from signin_db import *
 from signin_push import sdbPush
 
-
 ###############################
 # decorator to require API key
 # from https://coderwall.com/p/4qickw/require-an-api-key-for-a-route-in-flask-using-only-a-decorator
@@ -94,6 +95,324 @@ def require_appkey(view_function):
 ###############################
 
 
+#########################################################
+############## start of repeaterTest code ###############
+#########################################################
+
+
+rtPath='repeaterTest'
+if not os.path.isdir(rtPath):
+    rtPath='.'
+
+repeaters=[
+	'ALDER HILL',
+	'ALTA SIERRA',
+	'BABBITT',
+	'BANNER',
+	'BOREAL',
+	'BOWMAN',
+	'CASCADE SHRS',
+	'CHERRY HILL',
+	'DEADMAN FLAT',
+	'DONNER',
+	'EDWARDS XING',
+	'GROUSE RIDGE',
+	'KENTKY RIDGE',
+	'LOP',
+	'LWW',
+	'MT ROSE',
+	'OREGON',
+	'OWL CREEK',
+	'PILOT PEAK',
+	'PURDON',
+	'ROLLINS LK',
+	'SIERRABUTTES',
+	'SIGNAL',
+	'WOLF MTN'
+]
+locations=[
+	# 'Milton Reservoir',
+	# 'Shingle Falls',
+	'Bridgeport covered bridge',
+	# 'Emerald Pools',
+	'Penner Lake',
+	# 'South Yuba Primitive Camp',
+	'Buckeye Rd at Chalk Bluff Rd',
+	# 'Lake Sterling',
+	# 'Dog Bar Rd at South Fork Wolf Creek',
+	'Peter Grubb Hut',
+	'Prosser Boat Ramp',
+	# 'Sagehen CG',
+	# 'Boyington Mill CG',
+	'Pacific Crest Trail at Meadow Lake Road'
+]
+letters=list(string.ascii_uppercase)[0:len(repeaters)]
+
+def readSolutionDicts():
+	global solutionDicts
+	with open(os.path.join(rtPath,'solutionDict_partOne20240124085012.json'),'r') as f:
+		# logging.info(' reading partOne soltions...')
+		solutionDicts['partOne']=json.load(f)
+	with open(os.path.join(rtPath,'solutionDict_partTwo.json'),'r') as f:
+		# logging.info(' reading partTwo soltions...')
+		solutionDicts['partTwo']=json.load(f)
+		# validate the file, to check for typos or repeated entries
+		categories=['required','optional','unlikely']
+		for loc in solutionDicts['partTwo'].keys():
+			if sorted(solutionDicts['partTwo'][loc].keys())!=sorted(categories):
+				logging.info('ERROR during read of partTwo solutions: not all of the neccesary categories are in the file for '+str(loc))
+			for category in categories:
+				rep=solutionDicts['partTwo'][loc][category]
+				for r in rep:
+					if r not in repeaters:
+						logging.info('ERROR during read of partTwo solutions: '+str(loc)+': '+str(category)+': '+str(r)+' is not a valid repeater!')
+					for otherCategory in [c for c in categories if c!=category]:
+						if r in solutionDicts['partTwo'][loc][otherCategory]:
+							logging.info('ERROR during read of partTwo solutions: '+str(loc)+': '+str(category)+': '+str(r)+' is also listed in '+str(otherCategory)+'!')
+
+# print a list of strings as a simple human-readable list:
+# ['A','B','C'] --> A,B,C
+def strp(theList,spaces=True):
+	s=str(theList)
+	s=s.replace("'","")
+	s=s.replace('[','')
+	s=s.replace(']','')
+	if not spaces:
+		s=s.replace(', ',',')
+	return s
+
+def sendEmail(from_email,to_emails,subject,html_content):
+	msg=Mail(
+		from_email=from_email,
+		to_emails=to_emails,
+		subject=subject,
+		html_content=html_content
+	)
+	try:
+		sendgrid_client = SendGridAPIClient(SENDGRID_API_KEY)
+		response = sendgrid_client.send(msg)
+		logging.info('mailer response status code: '+str(response.status_code))
+		logging.info('mailer response body: '+str(response.body))
+		logging.info('mailer response headers: '+str(response.headers))
+	except Exception as e:
+		logging.info('ERROR: email not sent; mailer exception: '+str(e))
+		return False
+	logging.info('  email sent')
+	return True
+
+def gradeResponse(mapID='2000',responseDict={}):
+	global solutionDicts
+	logging.info('gradeResponse called for mapID='+str(mapID))
+	if not responseDict:
+		with open(os.path.join(rtPath,'response.json'),'r') as f:
+			responseDict=json.load(f)
+		logging.info('responseDict read from file:')
+	logging.info(json.dumps(responseDict,indent=3))
+	scoreDict={}
+	scorePct={}
+	gradedText=''
+
+	sarID=responseDict['SARNumber']
+
+	gradedFileName='repeaterTest_graded_'+str(mapID)+'.txt'
+
+	###########
+	# PART ONE
+	###########
+	scoreDict['partOne']=0
+	solutionDict=solutionDicts['partOne'].get(mapID,None)
+	if not solutionDict:
+		logging.info('ERROR: specified mapID '+str(mapID)+' has no corresponding entry in solutionDicts')
+		return
+	partOne=responseDict.get('partOne',None)
+	if not partOne:
+		gradedText+='\nERROR: partOne not found in response data'
+		logging.info('ERROR: partOne not found in response data')
+		return
+
+	# it looks like JotForm may have significantly changed the structure of their InputTable responses
+	#  sometime in January 2024 (or, it could be operator confusion...)
+	
+	# old:
+	# response={...,"partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,...
+	#  a dict of dicts, one per row, each one having an entry for each repeater,
+	#  where the selected repeater number is True and all others are False
+
+	# new:
+	# resonse={...,"partOne": [{"4": "E"}, {"13": "N"}, {"1": "B"}, {"16": "Q"}, ["A"], {"21": "V"}, ...
+	#  an ordered list of dicts, with index corresonding to row number (zero-based); each dict
+	#   has just one key:val pair, col# (string) : colName;
+	#  except, there appears to be a bug: column zero comes out as a list containing only the col name, not a dict.
+
+	# # decode then deserialize, to turn this into valid json:
+	# # "partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,
+	# # https://stackoverflow.com/a/42452833/3577105
+	# partOne=json.loads(partOne.encode().decode('unicode-escape'))
+	logging.info('partOne:')
+	logging.info(json.dumps(partOne,indent=3))
+
+	partOneResponseDict={}
+	# 1-24-24: at this point, partOne should be a list of dicts, each with a single key (the column number);
+	#  if so, replace keys (column numbers) with repeater names based on list index
+	if partOne.__class__.__name__=='list':
+		out={}
+		for n in range(len(partOne)):
+			e=partOne[n]
+			if e.__class__.__name__=='list' and len(e)==1:
+				letter=e[0]
+			else:
+				letter=list(partOne[n].values())[0]
+			out[letter]=repeaters[n]
+		partOneResponseDict=out
+		
+	# logging.info('partOne after processing:')
+	# logging.info(json.dumps(partOne,indent=3))
+
+	# for rowNum in partOne.keys():
+	# 	letter=[v for v in partOne[rowNum].values() if v][0]
+	# 	partOneResponseDict[letter]=repeaters[int(rowNum)]
+	
+	logging.info('partOneResponseDict:')
+	logging.info(json.dumps(partOneResponseDict,indent=3))
+
+	# # responseDict: keys = repeater names, values = guessed letter
+	# # invert these for use during the grading, which iterates over letters
+	# responseDict2={v:k for k,v in responseDict.items()}
+	solutionDict2={v:k for k,v in solutionDict.items()}
+
+	gradedText+='\nNCSSAR Repeater Test - Results for SAR'+str(sarID)+'  Map ID '+str(mapID)
+	gradedText+='\n==================================='
+	gradedText+='\nPart One - match map letters to repeater names'
+	gradedText+='\n-----------------------------------'
+	for letter in letters:
+		correctRepeater=solutionDict2[letter]
+		guessedRepeater=partOneResponseDict[letter]
+		if guessedRepeater==correctRepeater:
+			gradedText+='\n  CORRECT: '+letter+' = '+correctRepeater
+			scoreDict['partOne']+=1
+		else:
+			gradedText+='\nINCORRECT: '+letter+' = '+correctRepeater+'  (you guessed '+guessedRepeater+')'
+	gradedText+='\n-----------------------------------'
+	score=scoreDict['partOne']
+	pct=round(float(score/len(repeaters)*100))
+	scorePct['partOne']=pct
+	gradedText+='\nPart One Score: '+str(pct)+'%  ('+str(score)+' of '+str(len(repeaters))+')'
+
+	###########
+	# PART TWO
+	###########
+	scoreDict['partTwo']=0
+	solutionDict=solutionDicts['partTwo']
+	partTwo=responseDict.get('partTwo',None)
+	if not partTwo:
+		gradedText+='\nERROR: partTwo not found in response data'
+		logging.info('ERROR: partTwo not found in response data')
+		return
+	# # decode then deserialize, to turn this into valid json:
+	# # "partOne": "{\"0\":{\"0\":\"A\",\"1\":false,\"2\":false,
+	# # https://stackoverflow.com/a/42452833/3577105
+	# partTwo=json.loads(partTwo.encode().decode('unicode-escape'))
+	# print('partTwo:')
+	# print(json.dumps(partTwo,indent=3))
+
+	partTwoResponseDict={}
+
+	# 1-24-24: partTwo val is a list of lists
+
+	for n in range(len(partTwo)):
+		partTwoResponseDict[locations[n]]=partTwo[n]
+
+	# for rowNum in partTwo.keys():
+	# 	repeaterResponses=[v for v in partTwo[rowNum].values() if v]
+	# 	partTwoResponseDict[locations[int(rowNum)]]=repeaterResponses
+	
+	logging.info('partTwoResponseDict:')
+	logging.info(json.dumps(partTwoResponseDict,indent=3))
+
+	# # responseDict: keys = repeater names, values = guessed letter
+	# # invert these for use during the grading, which iterates over letters
+	# responseDict2={v:k for k,v in responseDict.items()}
+	# solutionDict2={v:k for k,v in solutionDict.items()}
+
+	gradedText+='\n\n==================================='
+	gradedText+='\nPart Two - repeaters likely to work at listed locations'
+	gradedText+='\n-----------------------------------'
+	# maxPossibleScore=0
+	targetScore=0
+	for location in locations:
+		requiredRepeaters=solutionDict[location]['required']
+		optionalRepeaters=solutionDict[location]['optional']
+		unlikelyRepeaters=solutionDict[location]['unlikely']
+		guessedRepeaters=partTwoResponseDict[location]
+		requiredRepeatersGuessed=[]
+		optionalRepeatersGuessed=[]
+		unlikelyRepeatersGuessed=[]
+		for repeater in guessedRepeaters:
+			if repeater in requiredRepeaters:
+				requiredRepeatersGuessed.append(repeater)
+			elif repeater in optionalRepeaters:
+				optionalRepeatersGuessed.append(repeater)
+			elif repeater in unlikelyRepeaters:
+				unlikelyRepeatersGuessed.append(repeater)
+		gradedText+='\n\n'+location+':  you selected '+strp(guessedRepeaters)
+		# print('\n'+location+':     requiredRepeatersGuessed: '+strp(requiredRepeatersGuessed),file=outfile)
+		# print('\n'+location+':     optionalRepeatersGuessed: '+strp(optionalRepeatersGuessed),file=outfile)
+		# print('\n'+location+':     unlikelyRepeatersGuessed: '+strp(unlikelyRepeatersGuessed),file=outfile)
+		if len(requiredRepeatersGuessed)==len(requiredRepeaters):
+			gradedText+='\n    CORRECT: Your selections included all of the most likely repeaters ('+strp(requiredRepeaters)+')'
+			scoreDict['partTwo']+=10
+		elif len(requiredRepeatersGuessed)==len(requiredRepeaters)-1:
+			gradedText+='\n    PARTIAL: Your selections included all but one of the most likely repeaters ('+strp(requiredRepeaters)+')'
+			scoreDict['partTwo']+=6
+		else:
+			gradedText+='\n  INCORRECT: Your selections did not include all of the most likely repeaters ('+strp(requiredRepeaters)+')'
+		olen=len(optionalRepeatersGuessed)
+		if olen>0:
+			gradedText+='\n      BONUS: You selected '+str(olen)+' of the other possible repeaters ('+strp(optionalRepeaters)+')'
+			scoreDict['partTwo']+=(olen*2)
+		ulen=len(unlikelyRepeatersGuessed)
+		if ulen>0:
+			gradedText+='\n  DEDUCTION: You selected '+str(ulen)+' of the highly-unlikely repeaters ('+strp(unlikelyRepeaters)+')'
+			scoreDict['partTwo']-=ulen
+		# maxPossibleScore+=10+olen
+		targetScore+=10
+	gradedText+='\n-----------------------------------'
+	score=scoreDict['partTwo']
+	# pct=round(float(score/maxPossibleScore*100))
+	pct=round(float(score/targetScore*100))
+	scorePct['partTwo']=pct
+	# print('Part Two Score: '+str(pct)+'%  (your score: '+str(score)+'   maximum possible: '+str(maxPossibleScore)+')',file=outfile)
+	gradedText+='\nPart Two Score: '+str(pct)+'%  (your score: '+str(score)+'   target score: '+str(targetScore)+')'
+
+	summary='SAR'+sarID+' : Map ID '+mapID+' : '+time.strftime('%a %b %d %H:%M:%S')
+	grade='Part One: '+str(scorePct['partOne'])+'%    Part Two: '+str(scorePct['partTwo'])+'%'
+	summary+='\n'+grade
+	summary+='\n----------------------------------------'
+	with open(os.path.join(rtPath,'summary.txt'),'a') as sf:
+		print(summary,file=sf)
+
+	testDict[sarID]['graded']=time.strftime('%a %b %d %Y %H:%M:%S')
+	testDict[sarID]['grade']=grade
+	rval=sendEmail(
+		from_email='caver456@gmail.com',
+		to_emails=['caver456@gmail.com',testDict[sarID]['email']],
+		subject='Repeater Test graded results',
+		html_content=(summary+'\n'+gradedText).replace('\n','<br>').replace(' ','&nbsp;')
+		)
+	if rval:
+		testDict[sarID]['gradedEmailSent']=time.strftime('%a %b %d %Y %H:%M:%S')
+
+def saveTestDict():
+	logging.info('saving testDict to testDict.json')
+	with open(os.path.join(rtPath,'testDict.json'),'w') as td:
+		json.dump(testDict,td,indent=3)
+
+def loadTestDict():
+	global testDict
+	logging.info('loading testDict from testDict.json')
+	with open(os.path.join(rtPath,'testDict.json'),'r') as td:
+		testDict=json.load(td)
+
 # from https://gist.github.com/fmaida/faee02b304b0444845703a3d130d928c - thanks to @fmaida
 def extract_jotform_data():
     output = {}
@@ -108,37 +427,42 @@ def extract_jotform_data():
             output[new_key] = value
     return output
 
+testDict={}
+solutionDicts={}
+
 # repeater test - jotform webhook handler
 @app.route('/api/v1/jotform_webhook',methods=['POST'])
 def api_jotformWebhookHandler():
+    global testDict
+    global solutionDicts
     app.logger.info('jotform webhook handler called')
     d=extract_jotform_data()
     app.logger.info('extracted jotform data:'+json.dumps(d))
-    mapID=str(d.get('mapId',None))
+    mapID=str(d.get('mapID',None))
     app.logger.info('map ID:'+mapID)
-    # msg=Message('jotform submission',sender='MailBot',recipients=['caver456@gmail.com'])
-    # msg.body='Received jotform submission: map ID='+mapID
-    # mail.send(msg)
-    # app.logger.info('api key length:'+str(len(str(SENDGRID_API_KEY))))
-    msg=Mail(
-        from_email='caver456@gmail.com',
-        to_emails='caver456@gmail.com',
-        subject='jotform response received',
-        html_content='<strong>and easy to do anywhere, even with Python</strong>'
-    )
-    try:
-        sendgrid_client = SendGridAPIClient(SENDGRID_API_KEY)
-        response = sendgrid_client.send(msg)
-        app.logger.info('mailer response status code: '+str(response.status_code))
-        app.logger.info('mailer response body: '+str(response.body))
-        app.logger.info('mailer response headers: '+str(response.headers))
-    except Exception as e:
-        app.logger.info('mailer exception: '+str(e))
-    app.logger.info('email sent')
-    return '''<h1>SignIn Database API</h1>
-<p>RepeaterTest response accepted</p>'''
+    
+    # rval=sendEmail(
+    #     from_email='caver456@gmail.com',
+    #     to_emails='caver456@gmail.com',
+    #     subject='jotform response received',
+    #     html_content='<strong>and easy to do anywhere, even with Python</strong>'
+    # )
+    # if rval:
+    #     app.logger.info('email sent')
+
+    testDict={}
+    solutionDicts={}
+    loadTestDict()
+    readSolutionDicts()
+    gradeResponse(mapID,d)
+    saveTestDict()
+
+    return '<h1>SignIn Database API</h1><p>RepeaterTest response accepted</p>'
 
 
+#########################################################
+############### end of repeaterTest code ################
+#########################################################
 
 
 # response = jsonified list of dict and response code
